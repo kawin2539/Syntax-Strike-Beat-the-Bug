@@ -1,0 +1,6 @@
+{
+  "name": "Syntax Strike: Beat the Bug",
+  "description": "2D Pixel Art Rhythm Fighting Game featuring real-time Web Audio synthesizer, combo mechanics, glitch bug battles, and pixel combat visuals.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

@@ -1,0 +1,68 @@
+@import "tailwindcss";
+
+@layer base {
+  body {
+    font-family: 'Chakra Petch', system-ui, sans-serif;
+    background-color: #080914;
+    color: #e2e8f0;
+    user-select: none;
+    -webkit-user-select: none;
+    overflow-x: hidden;
+  }
+}
+
+.font-pixel {
+  font-family: 'Press Start 2P', monospace;
+}
+
+.font-retro {
+  font-family: 'VT323', monospace;
+}
+
+/* Retro CRT Scanline Overlay */
+.crt-overlay {
+  background: linear-gradient(
+    rgba(18, 16, 16, 0) 50%, 
+    rgba(0, 0, 0, 0.25) 50%
+  ), linear-gradient(
+    90deg,
+    rgba(255, 0, 0, 0.03),
+    rgba(0, 255, 0, 0.01),
+    rgba(0, 0, 255, 0.03)
+  );
+  background-size: 100% 3px, 3px 100%;
+  pointer-events: none;
+}
+
+/* Neon Glows */
+.neon-glow-cyan {
+  box-shadow: 0 0 15px rgba(6, 182, 212, 0.6), inset 0 0 10px rgba(6, 182, 212, 0.3);
+}
+
+.neon-glow-magenta {
+  box-shadow: 0 0 15px rgba(236, 72, 153, 0.6), inset 0 0 10px rgba(236, 72, 153, 0.3);
+}
+
+.neon-glow-gold {
+  box-shadow: 0 0 20px rgba(234, 179, 8, 0.8), inset 0 0 12px rgba(234, 179, 8, 0.4);
+}
+
+.neon-text-cyan {
+  text-shadow: 0 0 8px #06b6d4, 0 0 16px #0891b2;
+}
+
+.neon-text-magenta {
+  text-shadow: 0 0 8px #ec4899, 0 0 16px #db2777;
+}
+
+.neon-text-yellow {
+  text-shadow: 0 0 8px #eab308, 0 0 16px #ca8a04;
+}
+
+/* Pixel art rendering crispness */
+canvas {
+  image-rendering: -moz-crisp-edges;
+  image-rendering: -webkit-crisp-edges;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
