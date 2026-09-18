@@ -20,7 +20,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: "1.1 Checkout Source Code"
-        uses: actions/checkout@v4.2.2
+        uses: actions/checkout@v4
 
       - name: "1.2 Check index.html Existence"
         run: |
@@ -37,13 +37,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: "2.1 Checkout Source Code"
-        uses: actions/checkout@v4.2.2
+        uses: actions/checkout@v4
 
       - name: "2.2 Setup GitHub Pages Environment"
         uses: actions/configure-pages@v5
 
       - name: "2.3 Package & Upload Site Artifact"
-        uses: actions/upload-pages-artifact@v3.1.1
+        uses: actions/upload-pages-artifact@v3
         with:
           path: '.'
 
@@ -57,4 +57,4 @@ jobs:
     steps:
       - name: "3.1 Deploy Web App"
         id: deployment
-        uses: actions/deploy-pages@v4.0.5
+        uses: actions/deploy-pages@v4
