@@ -1,21 +1,1658 @@
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Syntax Strike: Beat the Bug</title>
-    <meta name="description" content="2D Pixel Art Rhythm Fighting Game featuring real-time Web Audio synthesizer, combo mechanics, glitch bug battles, and pixel combat visuals." />
-    <meta property="og:title" content="Syntax Strike: Beat the Bug" />
-    <meta property="og:description" content="2D Pixel Art Rhythm Fighting Game featuring real-time Web Audio synthesizer, combo mechanics, glitch bug battles, and pixel combat visuals." />
-    <meta property="og:type" content="website" />
-    <meta name="twitter:card" content="summary_large_image" />
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;700&family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
-  </head>
-  <body class="bg-[#0b0c16] text-white select-none overflow-hidden">
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-  </body>
-</html>
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Syntax Strike: Beat the Bug (Offline Standalone)</title>
+  <!-- Google Fonts with robust fallback -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;600;700&family=Press+Start+2P&display=swap" rel="stylesheet">
+  <style>
+    /* RESET & CORE TYPOGRAPHY (BULLETPROOF OFFLINE FALLBACKS) */
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+      -webkit-user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
 
+    html, body {
+      width: 100%;
+      min-height: 100%;
+      background: #080914;
+      color: #e2e8f0;
+      font-family: 'Chakra Petch', 'Prompt', 'Kanit', 'Noto Sans Thai', 'Segoe UI', system-ui, -apple-system, sans-serif;
+      line-height: 1.4;
+      overflow-x: hidden;
+      touch-action: manipulation;
+    }
+
+    .font-pixel {
+      font-family: 'Press Start 2P', 'Silkscreen', 'Courier New', monospace;
+      letter-spacing: 0.5px;
+    }
+
+    /* APP CONTAINER - RESPONSIVE FOR ALL SCREEN SIZES (PC, IPAD, PHONE) */
+    #game-wrapper {
+      position: relative;
+      width: 100%;
+      max-width: 860px;
+      margin: 0 auto;
+      background: #080914;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    @media (min-width: 860px) {
+      body {
+        padding: 16px 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      #game-wrapper {
+        min-height: auto;
+        border: 2px solid #00f0ff;
+        border-radius: 12px;
+        box-shadow: 0 0 35px rgba(0, 240, 255, 0.35);
+        overflow: hidden;
+      }
+    }
+
+    /* SCREEN MANAGEMENT */
+    .screen {
+      display: none;
+      width: 100%;
+      flex-direction: column;
+    }
+    .screen.active {
+      display: flex;
+    }
+
+    /* 1. START MENU SCREEN */
+    #screen-menu {
+      padding: 16px 14px;
+      flex: 1;
+      overflow-y: auto;
+    }
+
+    .menu-header {
+      text-align: center;
+      margin-bottom: 14px;
+    }
+    .badge-pill {
+      display: inline-block;
+      padding: 3px 12px;
+      background: rgba(6, 182, 212, 0.15);
+      border: 1px solid rgba(6, 182, 212, 0.4);
+      border-radius: 9999px;
+      font-size: 11px;
+      font-family: monospace;
+      color: #38bdf8;
+      margin-bottom: 6px;
+    }
+    .title-banner {
+      font-size: clamp(20px, 4.5vw, 32px);
+      color: #00f0ff;
+      text-shadow: 0 0 16px rgba(0, 240, 255, 0.8);
+      margin-bottom: 4px;
+      line-height: 1.2;
+    }
+    .subtitle-banner {
+      font-size: clamp(10px, 2.5vw, 13px);
+      color: #facc15;
+      letter-spacing: 2px;
+      margin-bottom: 6px;
+    }
+    .intro-text {
+      font-size: 12px;
+      color: #94a3b8;
+      max-width: 520px;
+      margin: 0 auto;
+    }
+
+    /* 3-COLUMN RESPONSIVE SELECTION GRID */
+    .grid-select {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+      margin: 12px 0;
+    }
+    @media (min-width: 600px) {
+      .grid-select { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (min-width: 800px) {
+      .grid-select { grid-template-columns: repeat(3, 1fr); }
+    }
+
+    .panel-box {
+      background: rgba(15, 23, 42, 0.85);
+      border: 1px solid #1e293b;
+      border-radius: 8px;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+    }
+    .panel-box h3 {
+      font-size: 11px;
+      color: #38bdf8;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* OPTION CARDS */
+    .opt-card {
+      background: #0b1120;
+      border: 1px solid #1e293b;
+      border-radius: 6px;
+      padding: 9px 10px;
+      margin-bottom: 8px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .opt-card:hover {
+      border-color: #38bdf8;
+    }
+    .opt-card.selected {
+      border-color: #00f0ff;
+      background: rgba(0, 240, 255, 0.12);
+      box-shadow: 0 0 12px rgba(0, 240, 255, 0.25);
+    }
+    .opt-title {
+      font-size: 12px;
+      font-weight: 700;
+      color: #fff;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .opt-desc {
+      font-size: 11px;
+      color: #94a3b8;
+      margin-top: 4px;
+      line-height: 1.35;
+    }
+
+    /* INTERACTIVE BPM SLIDER & CHIPS */
+    .bpm-slider-box {
+      background: #070c18;
+      border: 1px solid #1e293b;
+      border-radius: 6px;
+      padding: 8px;
+      margin-bottom: 8px;
+    }
+    .bpm-chips-wrap {
+      display: flex;
+      gap: 4px;
+      overflow-x: auto;
+      padding: 4px 0;
+    }
+    .bpm-chip {
+      font-size: 9.5px;
+      font-family: monospace;
+      font-weight: bold;
+      padding: 3px 6px;
+      border-radius: 4px;
+      background: #0f172a;
+      color: #94a3b8;
+      border: 1px solid #1e293b;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .bpm-chip.active {
+      background: #f59e0b;
+      color: #080914;
+      font-weight: 800;
+      box-shadow: 0 0 8px rgba(245, 158, 11, 0.6);
+    }
+
+    .scroll-cards-list {
+      max-height: 220px;
+      overflow-y: auto;
+      padding-right: 4px;
+    }
+    .scroll-cards-list::-webkit-scrollbar { width: 5px; }
+    .scroll-cards-list::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+
+    /* STICKY FOOTER ACTION BAR */
+    .menu-footer {
+      position: sticky;
+      bottom: 0;
+      background: rgba(8, 9, 20, 0.96);
+      backdrop-filter: blur(8px);
+      border-top: 1px solid #1e293b;
+      padding: 10px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      z-index: 10;
+    }
+    @media (min-width: 600px) {
+      .menu-footer {
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+      }
+    }
+
+    .btn-start {
+      background: linear-gradient(135deg, #06b6d4, #10b981);
+      color: #080914;
+      border: none;
+      padding: 12px 24px;
+      font-size: 13px;
+      font-weight: bold;
+      border-radius: 6px;
+      cursor: pointer;
+      box-shadow: 0 0 20px rgba(6, 182, 212, 0.7);
+      transition: transform 0.1s;
+      min-height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+    .btn-start:hover { transform: scale(1.02); }
+    .btn-start:active { transform: scale(0.98); }
+
+    .btn-audio {
+      background: #0f172a;
+      color: #cbd5e1;
+      border: 1px solid #334155;
+      padding: 8px 12px;
+      font-size: 11px;
+      border-radius: 6px;
+      cursor: pointer;
+      min-height: 42px;
+    }
+
+    /* 2. COMBAT SCREEN & CANVAS */
+    #screen-game {
+      width: 100%;
+      background: #05060f;
+    }
+
+    #combat-hud {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 12px;
+      background: rgba(6, 9, 20, 0.95);
+      border-bottom: 1px solid #1e293b;
+      gap: 8px;
+    }
+    .hud-col {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      flex: 1;
+      max-width: 220px;
+    }
+    .stat-label {
+      font-size: 10px;
+      color: #94a3b8;
+      display: flex;
+      justify-content: space-between;
+    }
+    .hp-bar-bg {
+      width: 100%;
+      height: 10px;
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 3px;
+      overflow: hidden;
+    }
+    .hp-bar-fill {
+      height: 100%;
+      background: #10b981;
+      width: 100%;
+      transition: width 0.15s;
+    }
+    .combo-display {
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-width: 90px;
+    }
+    .combo-count {
+      font-size: clamp(14px, 3vw, 20px);
+      color: #facc15;
+      text-shadow: 0 0 10px rgba(250, 204, 21, 0.7);
+    }
+    .multi-badge {
+      font-size: 9px;
+      color: #00f0ff;
+      background: rgba(0, 240, 255, 0.15);
+      padding: 1px 6px;
+      border-radius: 4px;
+      border: 1px solid rgba(0, 240, 255, 0.4);
+      margin-top: 2px;
+    }
+
+    /* RESPONSIVE CANVAS */
+    #canvas-container {
+      width: 100%;
+      position: relative;
+      background: #05060f;
+    }
+    #game-canvas {
+      width: 100%;
+      height: auto;
+      aspect-ratio: 800 / 480;
+      display: block;
+      margin: 0 auto;
+      background: #070a14;
+    }
+
+    /* CONTROLS BAR (RESPONSIVE TOUCH BUTTONS) */
+    #controls-bar {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      padding: 8px 10px;
+      background: #080914;
+      border-top: 1px solid #1e293b;
+    }
+    .dpad-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 6px;
+    }
+    .ctrl-btn {
+      background: #0f172a;
+      border: 1px solid #334155;
+      color: #e2e8f0;
+      padding: 10px 4px;
+      font-size: 11px;
+      font-weight: bold;
+      border-radius: 6px;
+      cursor: pointer;
+      min-height: 46px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      touch-action: manipulation;
+    }
+    .ctrl-btn:active {
+      background: #1e293b;
+      transform: scale(0.96);
+    }
+    .btn-space {
+      background: linear-gradient(135deg, #f59e0b, #e11d48);
+      color: #fff;
+      border: 1px solid #fbbf24;
+      padding: 12px;
+      font-size: 13px;
+      font-weight: bold;
+      border-radius: 6px;
+      cursor: pointer;
+      min-height: 48px;
+      box-shadow: 0 0 15px rgba(245, 158, 11, 0.4);
+      touch-action: manipulation;
+    }
+    .btn-space:active {
+      transform: scale(0.97);
+    }
+
+    /* 3. SUMMARY MODAL */
+    #screen-summary {
+      padding: 24px 16px;
+      text-align: center;
+      max-width: 500px;
+      margin: 20px auto;
+      background: rgba(15, 23, 42, 0.95);
+      border: 2px solid #00f0ff;
+      border-radius: 8px;
+      box-shadow: 0 0 30px rgba(0, 240, 255, 0.4);
+    }
+    .result-title {
+      font-size: 20px;
+      margin-bottom: 8px;
+    }
+    .result-title.win { color: #10b981; text-shadow: 0 0 12px rgba(16, 185, 129, 0.8); }
+    .result-title.lose { color: #ef4444; text-shadow: 0 0 12px rgba(239, 68, 68, 0.8); }
+    .summary-stats {
+      text-align: left;
+      margin: 16px 0;
+      background: #080914;
+      border: 1px solid #1e293b;
+      border-radius: 6px;
+      padding: 12px 14px;
+    }
+    .summary-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 5px 0;
+      border-bottom: 1px solid #1e293b;
+      font-size: 12px;
+    }
+    .summary-row:last-child { border-bottom: none; }
+  </style>
+</head>
+<body>
+
+  <div id="game-wrapper">
+    <!-- 1. START MENU -->
+    <div id="screen-menu" class="screen active">
+      <div class="menu-header">
+        <div class="badge-pill">2D RETRO PIXEL ART RHYTHM FIGHTING</div>
+        <h1 class="title-banner font-pixel">SYNTAX STRIKE</h1>
+        <div class="subtitle-banner font-pixel">⚔️ BEAT THE BUG ⚔️</div>
+        <p class="intro-text">เคาะจังหวะตามโค้ด ปราบมอนสเตอร์บั๊กในระบบคอมพิวเตอร์ด้วยคอมโบต่อเนื่อง!</p>
+      </div>
+
+      <div class="grid-select">
+        <!-- DIFFICULTY SELECTOR (UP TO 180 BPM + SLIDER) -->
+        <div class="panel-box">
+          <h3 class="font-pixel">⚡ 1. เลือกระดับความยาก</h3>
+          <div class="bpm-slider-box">
+            <div style="display:flex; justify-content:space-between; font-size:11px; margin-bottom:4px;">
+              <span style="color:#facc15; font-family:monospace;">ความเร็ว: <strong id="lbl-bpm-val">50 BPM</strong></span>
+              <span id="lbl-diff-name" style="color:#38bdf8; font-family:'Press Start 2P', monospace; font-size:9px;">Very Easy</span>
+            </div>
+            <input id="rng-diff" type="range" min="0" max="5" step="1" value="0" style="width:100%; accent-color:#facc15; cursor:pointer;" oninput="onSliderDiffChange(this.value)">
+            <div id="bpm-chips-wrap" class="bpm-chips-wrap">
+              <!-- Rendered via JS -->
+            </div>
+          </div>
+          <div id="diff-list" class="scroll-cards-list">
+            <!-- Rendered via JS -->
+          </div>
+        </div>
+
+        <!-- CHARACTER CLASS PERK -->
+        <div class="panel-box">
+          <h3 class="font-pixel">🎯 2. ตัวละคร & สกิล</h3>
+          <div id="class-list" class="scroll-cards-list">
+            <!-- Rendered via JS -->
+          </div>
+        </div>
+
+        <!-- BOSS BUG TARGET -->
+        <div class="panel-box">
+          <h3 class="font-pixel">👾 3. บอสเป้าหมาย (Bug AI)</h3>
+          <div id="bug-list" class="scroll-cards-list">
+            <!-- Rendered via JS -->
+          </div>
+          <div style="font-size:10px; color:#94a3b8; margin-top:8px; padding-top:8px; border-top:1px solid #1e293b;">
+            🎮 กฎ Timing: Perfect ±ms ได้ดาเมจเต็ม, Great 70%, Miss เสีย 5 HP
+          </div>
+        </div>
+      </div>
+
+      <!-- STICKY ACTION BAR -->
+      <div class="menu-footer">
+        <button id="btn-sound-toggle" class="btn-audio" onclick="toggleMute()">
+          🔊 เสียงสังเคราะห์: เปิด
+        </button>
+        <button id="btn-start-game" class="btn-start font-pixel">
+          ▶ START BATTLE (เริ่มเกม)
+        </button>
+      </div>
+    </div>
+
+    <!-- 2. COMBAT SCREEN -->
+    <div id="screen-game" class="screen">
+      <div id="combat-hud">
+        <!-- Player HP -->
+        <div class="hud-col">
+          <div class="stat-label">
+            <span id="hud-player-name" style="color:#38bdf8; font-weight:bold;">PLAYER</span>
+            <span id="hud-player-hp">100/100</span>
+          </div>
+          <div class="hp-bar-bg">
+            <div id="hud-hp-bar" class="hp-bar-fill"></div>
+          </div>
+          <div id="hud-active-perk" style="font-size:9px; color:#10b981;">PERK: ACTIVE</div>
+        </div>
+
+        <!-- Combo & Multiplier -->
+        <div class="combo-display">
+          <div id="hud-combo" class="combo-count font-pixel">0</div>
+          <div id="hud-multiplier" class="multi-badge font-pixel">x1 MULTIPLIER</div>
+        </div>
+
+        <!-- Target Progress / Bug HP -->
+        <div class="hud-col" style="align-items:flex-end;">
+          <div class="stat-label" style="width:100%;">
+            <span id="hud-bug-name" style="color:#ef4444; font-weight:bold;">BUG BOSS</span>
+            <span id="hud-progress-text">0%</span>
+          </div>
+          <div class="hp-bar-bg">
+            <div id="hud-progress-bar" class="hp-bar-fill" style="background:#00f0ff; width:0%;"></div>
+          </div>
+          <div id="hud-target-score" style="font-size:9px; color:#94a3b8;">GOAL: 8,000 PTS</div>
+        </div>
+      </div>
+
+      <div id="canvas-container">
+        <canvas id="game-canvas" width="800" height="480"></canvas>
+      </div>
+
+      <!-- VIRTUAL CONTROLS -->
+      <div id="controls-bar">
+        <div class="dpad-row">
+          <button class="ctrl-btn font-pixel" onclick="triggerKey('left')">◀ LEFT</button>
+          <button class="ctrl-btn font-pixel" onclick="triggerKey('up')">▲ UP</button>
+          <button class="ctrl-btn font-pixel" onclick="triggerKey('down')">▼ DOWN</button>
+          <button class="ctrl-btn font-pixel" onclick="triggerKey('right')">▶ RIGHT</button>
+        </div>
+        <button class="btn-space font-pixel" onclick="triggerKey('space')">⚔️ SPACEBAR FINISHER ⚔️</button>
+      </div>
+    </div>
+
+    <!-- 3. SUMMARY SCREEN -->
+    <div id="screen-summary" class="screen">
+      <div id="summary-title" class="result-title font-pixel win">STAGE CLEARED!</div>
+      <p id="summary-subtitle" style="font-size:12px; color:#94a3b8;">ระบบกำจัดมอนสเตอร์บั๊กสำเร็จ และรักษาความเสถียรของเซิร์ฟเวอร์ไว้ได้</p>
+
+      <div class="summary-stats">
+        <div class="summary-row"><span>คะแนนรวม (Total Score):</span><strong id="sum-score" style="color:#facc15;">0</strong></div>
+        <div class="summary-row"><span>คอมโบสูงสุด (Max Combo):</span><strong id="sum-combo" style="color:#38bdf8;">0</strong></div>
+        <div class="summary-row"><span>ความเสียหายที่ทำได้ (Total Damage):</span><strong id="sum-damage" style="color:#ef4444;">0</strong></div>
+        <div class="summary-row"><span>เวลาที่ใช้ (Clear Time):</span><strong id="sum-time" style="color:#a855f7;">00:00</strong></div>
+        <div class="summary-row"><span>การประเมินจังหวะ (P / G / M):</span><strong id="sum-ratings">0 / 0 / 0</strong></div>
+        <div class="summary-row"><span>EXP ที่ได้รับ (Experience):</span><strong id="sum-exp" style="color:#10b981;">+0 EXP</strong></div>
+      </div>
+
+      <button class="btn-start font-pixel" style="width:100%;" onclick="returnToMenu()">PLAY AGAIN (เล่นอีกครั้ง)</button>
+    </div>
+  </div>
+
+  <script>
+    // ===================================================
+    // SYNTAX STRIKE: BEAT THE BUG - COMPLETE OFFLINE CODE
+    // ===================================================
+
+    // 1. GAME DATA & 6 DIFFICULTY TIERS (UP TO 180 BPM)
+    const DIFFICULTIES = [
+      {
+        id: 'very_easy',
+        name: 'Very Easy (ฝึกหัด / จังหวะช้า)',
+        bpm: 50,
+        perfectWindow: 60,
+        greatWindow: 110,
+        noteSpeed: 270,
+        targetScore: 8000,
+        notesPerLoop: 10,
+        glitchFreq: 0.03,
+        desc: 'ความเร็ว 50 BPM, ชุดคอมโบ 10 ตัวอักษร (Perfect ±60ms, Great ±110ms) เหมาะสำหรับฝึกกด'
+      },
+      {
+        id: 'easy',
+        name: 'Easy (สบายๆ)',
+        bpm: 75,
+        perfectWindow: 50,
+        greatWindow: 95,
+        noteSpeed: 330,
+        targetScore: 12000,
+        notesPerLoop: 12,
+        glitchFreq: 0.06,
+        desc: 'ความเร็ว 75 BPM, ชุดคอมโบ 12 ตัวอักษร (Perfect ±50ms, Great ±95ms) จังหวะดนตรีกำลังพอดี'
+      },
+      {
+        id: 'normal',
+        name: 'Normal (ปกติ)',
+        bpm: 95,
+        perfectWindow: 40,
+        greatWindow: 80,
+        noteSpeed: 400,
+        targetScore: 18000,
+        notesPerLoop: 14,
+        glitchFreq: 0.10,
+        desc: 'ความเร็ว 95 BPM, ชุดคอมโบ 14 ตัวอักษร (Perfect ±40ms, Great ±80ms) สมดุลและสนุกเร้าใจ'
+      },
+      {
+        id: 'hard',
+        name: 'Hard (ท้าทาย)',
+        bpm: 120,
+        perfectWindow: 30,
+        greatWindow: 60,
+        noteSpeed: 500,
+        targetScore: 26000,
+        notesPerLoop: 16,
+        glitchFreq: 0.18,
+        desc: 'ความเร็ว 120 BPM, ชุดคอมโบ 16 ตัวอักษร + Space บอสเริ่มปล่อย Glitch โจมตี'
+      },
+      {
+        id: 'expert',
+        name: 'Expert (เชี่ยวชาญ)',
+        bpm: 150,
+        perfectWindow: 25,
+        greatWindow: 50,
+        noteSpeed: 620,
+        targetScore: 36000,
+        notesPerLoop: 18,
+        glitchFreq: 0.28,
+        desc: 'ความเร็ว 150 BPM, ชุดคอมโบ 18 ตัวอักษร (Perfect ±25ms) สายตาและความเร็วต้องแม่นยำ'
+      },
+      {
+        id: 'overclock',
+        name: 'Overclock (ขีดสุด)',
+        bpm: 180,
+        perfectWindow: 20,
+        greatWindow: 40,
+        noteSpeed: 750,
+        targetScore: 48000,
+        notesPerLoop: 20,
+        glitchFreq: 0.40,
+        desc: 'ความเร็ว 180 BPM สูงสุด! ชุดคอมโบ 20 ตัวอักษร สำหรับโปรเพลเยอร์จังหวะขั้นเทพ'
+      }
+    ];
+
+    const CLASSES = [
+      {
+        id: 'syntax_striker',
+        name: 'Syntax Striker',
+        baseHp: 100,
+        scoreBonus: 1.25,
+        healOnPerfect: 0,
+        shieldMisses: 0,
+        desc: 'สายดาบแรง: เพิ่มคะแนนและดาเมจคอมโบ +25%'
+      },
+      {
+        id: 'debugger_paladin',
+        name: 'Debugger Paladin',
+        baseHp: 120,
+        scoreBonus: 1.0,
+        healOnPerfect: 6,
+        shieldMisses: 0,
+        desc: 'สายฟื้นฟู: ฟื้นฟู 6 HP ทุกครั้งที่กดได้ Perfect'
+      },
+      {
+        id: 'overclock_compiler',
+        name: 'Overclock Compiler',
+        baseHp: 90,
+        scoreBonus: 1.45,
+        healOnPerfect: 0,
+        shieldMisses: 0,
+        desc: 'สายคริติคอล: ดาเมจและคะแนน +45% แต่ HP เริ่มต้น 90'
+      },
+      {
+        id: 'buffer_rogue',
+        name: 'Buffer Rogue',
+        baseHp: 100,
+        scoreBonus: 1.1,
+        healOnPerfect: 0,
+        shieldMisses: 3,
+        desc: 'สายบัฟเฟอร์: พลาดได้ 3 ครั้งแรกโดยไม่เสียเลือดและคอมโบ'
+      }
+    ];
+
+    const BUGS = [
+      {
+        id: 'null_pointer',
+        name: 'NullPointer Spider',
+        color: '#ef4444',
+        moveName: 'Glitch Attack',
+        moveDesc: 'บิดเบือนการมองเห็นของปุ่มลูกศรชั่วขณะ'
+      },
+      {
+        id: 'memory_leak',
+        name: 'MemoryLeak Swarm',
+        color: '#a855f7',
+        moveName: 'RAM Overload',
+        moveDesc: 'เร่งความเร็วโน้ตชั่วคราวให้เพลงเร็วขึ้น'
+      },
+      {
+        id: 'stack_overflow',
+        name: 'StackOverflow Behemoth',
+        color: '#f97316',
+        moveName: 'Stack Collapse',
+        moveDesc: 'Glitch Blindness + ดาเมจสวนกลับมหาศาล'
+      }
+    ];
+
+    // State Variables
+    let selDiff = DIFFICULTIES[0];
+    let selClass = CLASSES[0];
+    let selBug = BUGS[0];
+    let isMuted = false;
+
+    let isPlaying = false;
+    let startTime = 0;
+    let currentTimeMs = 0;
+    let notes = [];
+    let noteCounter = 0;
+    let nextNoteTimeMs = 1200;
+    let loopNoteCount = 0;
+    let loopIndex = 0;
+
+    let score = 0;
+    let combo = 0;
+    let maxCombo = 0;
+    let multiplier = 1;
+    let playerHp = 100;
+    let playerMaxHp = 100;
+    let shieldsLeft = 0;
+    let perfectCount = 0;
+    let greatCount = 0;
+    let missCount = 0;
+    let totalDamage = 0;
+
+    let isGlitchActive = false;
+    let glitchTimer = 0;
+    let nextGlitchCheck = 4000;
+    let isFrozen = false;
+    let freezeTimer = 0;
+    let autoSpaceActive = false;
+
+    let particles = [];
+    let floatingTexts = [];
+    let slashEffects = [];
+    let playerAnim = 'idle';
+    let playerAnimTimer = 0;
+    let botAnim = 'idle';
+    let botAnimTimer = 0;
+    let screenShake = 0;
+
+    const canvas = document.getElementById('game-canvas');
+    const ctx = canvas.getContext('2d');
+    ctx.imageSmoothingEnabled = false;
+
+    // 2. PROCEDURAL WEB AUDIO SYNTHESIZER
+    let audioCtx = null;
+    let isMusicPlaying = false;
+    let musicStep = 0;
+    let nextBeatTime = 0;
+    let synthTimer = null;
+
+    function initAudio() {
+      if (isMuted) return;
+      if (!audioCtx) {
+        const AudioClass = window.AudioContext || window.webkitAudioContext;
+        audioCtx = new AudioClass();
+      }
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+    }
+
+    function toggleMute() {
+      isMuted = !isMuted;
+      document.getElementById('btn-sound-toggle').innerText = isMuted ? '🔇 เสียง: ปิด (Muted)' : '🔊 เสียงสังเคราะห์: เปิด';
+      if (isMuted && isMusicPlaying) stopMusicLoop();
+      else if (!isMuted && isPlaying) startMusicLoop(selDiff.bpm);
+    }
+
+    function playTone(freq, type, duration, vol = 0.2) {
+      if (isMuted || !audioCtx) return;
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = type;
+      osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+      gain.gain.setValueAtTime(vol, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + duration);
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start();
+      osc.stop(audioCtx.currentTime + duration);
+    }
+
+    function playKick(time) {
+      if (isMuted || !audioCtx) return;
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.frequency.setValueAtTime(130, time);
+      osc.frequency.exponentialRampToValueAtTime(30, time + 0.12);
+      gain.gain.setValueAtTime(0.35, time);
+      gain.gain.exponentialRampToValueAtTime(0.001, time + 0.14);
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start(time);
+      osc.stop(time + 0.15);
+    }
+
+    function playSnare(time) {
+      if (isMuted || !audioCtx) return;
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(210, time);
+      gain.gain.setValueAtTime(0.18, time);
+      gain.gain.exponentialRampToValueAtTime(0.001, time + 0.1);
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start(time);
+      osc.stop(time + 0.1);
+    }
+
+    function playHiHat(time) {
+      if (isMuted || !audioCtx) return;
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = 'square';
+      osc.frequency.setValueAtTime(6500, time);
+      gain.gain.setValueAtTime(0.04, time);
+      gain.gain.exponentialRampToValueAtTime(0.001, time + 0.04);
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start(time);
+      osc.stop(time + 0.05);
+    }
+
+    function startMusicLoop(bpm) {
+      if (isMuted) return;
+      initAudio();
+      isMusicPlaying = true;
+      musicStep = 0;
+      nextBeatTime = audioCtx.currentTime + 0.05;
+
+      const schedule = () => {
+        if (!isMusicPlaying || !audioCtx || isMuted) return;
+        const secondsPerStep = (60 / bpm) / 4;
+
+        while (nextBeatTime < audioCtx.currentTime + 0.2) {
+          if (musicStep % 8 === 0) playKick(nextBeatTime);
+          if (musicStep % 8 === 4) playSnare(nextBeatTime);
+          if (musicStep % 2 === 0) playHiHat(nextBeatTime);
+
+          const bassNotes = [110, 110, 130.8, 146.8, 110, 164.8, 146.8, 123.5];
+          if (musicStep % 2 === 0) {
+            const freq = bassNotes[(musicStep / 2) % bassNotes.length];
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(freq, nextBeatTime);
+            gain.gain.setValueAtTime(0.1, nextBeatTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, nextBeatTime + secondsPerStep * 1.5);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start(nextBeatTime);
+            osc.stop(nextBeatTime + secondsPerStep * 1.6);
+          }
+
+          nextBeatTime += secondsPerStep;
+          musicStep++;
+        }
+
+        synthTimer = setTimeout(schedule, 25);
+      };
+
+      schedule();
+    }
+
+    function stopMusicLoop() {
+      isMusicPlaying = false;
+      if (synthTimer) clearTimeout(synthTimer);
+    }
+
+    // 3. UI INITIALIZATION & SYNC
+    function buildMenuUI() {
+      // 1. Chips Row
+      const chipsWrap = document.getElementById('bpm-chips-wrap');
+      chipsWrap.innerHTML = DIFFICULTIES.map((d, i) => `
+        <button class="bpm-chip ${d.id === selDiff.id ? 'active' : ''}" onclick="onSliderDiffChange(${i})">${d.bpm} BPM</button>
+      `).join('');
+
+      // Update Slider value & labels
+      const curIdx = DIFFICULTIES.findIndex(d => d.id === selDiff.id);
+      document.getElementById('rng-diff').value = curIdx >= 0 ? curIdx : 0;
+      document.getElementById('lbl-bpm-val').innerText = selDiff.bpm + ' BPM';
+      document.getElementById('lbl-diff-name').innerText = selDiff.name.split(' ')[0];
+
+      // 2. Diff Cards List
+      const diffWrap = document.getElementById('diff-list');
+      diffWrap.innerHTML = DIFFICULTIES.map(d => `
+        <div class="opt-card ${d.id === selDiff.id ? 'selected' : ''}" onclick="selectDiff('${d.id}')">
+          <div class="opt-title">
+            <span>${d.name}</span>
+            <span style="color:#facc15; font-family:monospace; font-weight:bold;">${d.bpm} BPM</span>
+          </div>
+          <div class="opt-desc">${d.desc}</div>
+          <div style="font-size:10px; color:#38bdf8; margin-top:3px;">
+            🎯 Timing: ±${d.perfectWindow}ms / ±${d.greatWindow}ms | ${d.notesPerLoop} โน้ต/ลูป
+          </div>
+        </div>
+      `).join('');
+
+      // 3. Class List
+      const classWrap = document.getElementById('class-list');
+      classWrap.innerHTML = CLASSES.map(c => `
+        <div class="opt-card ${c.id === selClass.id ? 'selected' : ''}" onclick="selectClass('${c.id}')">
+          <div class="opt-title">
+            <span>${c.name}</span>
+            <span style="color:#10b981; font-family:monospace;">HP ${c.baseHp}</span>
+          </div>
+          <div class="opt-desc">${c.desc}</div>
+        </div>
+      `).join('');
+
+      // 4. Bug List
+      const bugWrap = document.getElementById('bug-list');
+      bugWrap.innerHTML = BUGS.map(b => `
+        <div class="opt-card ${b.id === selBug.id ? 'selected' : ''}" onclick="selectBug('${b.id}')">
+          <div class="opt-title">
+            <span style="color:${b.color};">● ${b.name}</span>
+          </div>
+          <div class="opt-desc">ท่าไม้ตาย: ${b.moveName} (${b.moveDesc})</div>
+        </div>
+      `).join('');
+    }
+
+    window.onSliderDiffChange = (val) => {
+      const idx = parseInt(val, 10);
+      if (DIFFICULTIES[idx]) {
+        selDiff = DIFFICULTIES[idx];
+        buildMenuUI();
+      }
+    };
+
+    window.selectDiff = (id) => {
+      selDiff = DIFFICULTIES.find(d => d.id === id) || selDiff;
+      buildMenuUI();
+    };
+
+    window.selectClass = (id) => {
+      selClass = CLASSES.find(c => c.id === id) || selClass;
+      buildMenuUI();
+    };
+
+    window.selectBug = (id) => {
+      selBug = BUGS.find(b => b.id === id) || selBug;
+      buildMenuUI();
+    };
+
+    // 4. COMBAT MECHANICS
+    function startGame() {
+      initAudio();
+      score = 0;
+      combo = 0;
+      maxCombo = 0;
+      multiplier = 1;
+      playerMaxHp = selClass.baseHp;
+      playerHp = playerMaxHp;
+      shieldsLeft = selClass.shieldMisses;
+      perfectCount = 0;
+      greatCount = 0;
+      missCount = 0;
+      totalDamage = 0;
+
+      notes = [];
+      noteCounter = 0;
+      loopNoteCount = 0;
+      loopIndex = 0;
+      nextNoteTimeMs = 1200;
+
+      isGlitchActive = false;
+      isFrozen = false;
+      autoSpaceActive = false;
+      particles = [];
+      floatingTexts = [];
+      slashEffects = [];
+
+      document.getElementById('hud-player-name').innerText = selClass.name.toUpperCase();
+      document.getElementById('hud-bug-name').innerText = selBug.name.toUpperCase();
+      document.getElementById('hud-target-score').innerText = 'GOAL: ' + selDiff.targetScore.toLocaleString() + ' PTS';
+      document.getElementById('hud-active-perk').innerText = 'PERK: ' + selClass.name;
+
+      updateHUD();
+
+      document.getElementById('screen-menu').classList.remove('active');
+      document.getElementById('screen-summary').classList.remove('active');
+      document.getElementById('screen-game').classList.add('active');
+
+      isPlaying = true;
+      startTime = performance.now();
+      startMusicLoop(selDiff.bpm);
+
+      requestAnimationFrame(gameLoop);
+    }
+
+    function updateHUD() {
+      // HP Bar
+      const hpPct = Math.max(0, Math.min(100, (playerHp / playerMaxHp) * 100));
+      const hpEl = document.getElementById('hud-hp-bar');
+      hpEl.style.width = hpPct + '%';
+      hpEl.style.background = hpPct > 50 ? '#10b981' : hpPct > 25 ? '#f59e0b' : '#ef4444';
+      document.getElementById('hud-player-hp').innerText = `${Math.ceil(playerHp)}/${playerMaxHp}`;
+
+      // Multiplier (Requires 10-20 hits before combo activation)
+      if (combo >= 30) multiplier = 4;
+      else if (combo >= 20) multiplier = 3;
+      else if (combo >= 10) multiplier = 2;
+      else multiplier = 1;
+
+      document.getElementById('hud-combo').innerText = combo;
+      if (combo < 10) {
+        document.getElementById('hud-multiplier').innerText = `CHARGE [${combo}/10]`;
+      } else {
+        document.getElementById('hud-multiplier').innerText = `x${multiplier} COMBO STRIKE`;
+      }
+
+      // Progress Bug HP
+      const progPct = Math.min(100, Math.round((score / selDiff.targetScore) * 100));
+      document.getElementById('hud-progress-bar').style.width = progPct + '%';
+      document.getElementById('hud-progress-text').innerText = progPct + '%';
+
+      if (score >= selDiff.targetScore && isPlaying) {
+        endGame(true);
+      }
+    }
+
+    function spawnNotes(now) {
+      const msPerBeat = (60 / selDiff.bpm) * 1000;
+      const directions = ['left', 'up', 'down', 'right'];
+
+      while (nextNoteTimeMs < now + 2400) {
+        noteCounter++;
+        loopNoteCount++;
+
+        const isFinisher = loopNoteCount >= selDiff.notesPerLoop + 1;
+        const type = isFinisher ? 'space' : directions[Math.floor(Math.random() * directions.length)];
+
+        if (isFinisher) {
+          loopNoteCount = 0;
+          loopIndex++;
+        }
+
+        notes.push({
+          id: noteCounter,
+          type,
+          timeMs: nextNoteTimeMs,
+          isFinisher,
+          hit: false,
+          missed: false
+        });
+
+        // Reduced spacing between notes in the combo loop (closer, rhythmic stream)
+        if (isFinisher) {
+          nextNoteTimeMs += msPerBeat * 1.1;
+        } else {
+          nextNoteTimeMs += msPerBeat * 0.48;
+        }
+      }
+    }
+
+    // Input Trigger Handler
+    window.triggerKey = (inputKey) => {
+      if (!isPlaying) return;
+      initAudio();
+
+      const now = currentTimeMs;
+      const activeNotes = notes.filter(n => !n.hit && !n.missed);
+      if (activeNotes.length === 0) return;
+
+      const target = activeNotes[0];
+      const diff = Math.abs(now - target.timeMs);
+
+      if (diff <= selDiff.greatWindow) {
+        if (target.type === inputKey) {
+          target.hit = true;
+          const isPerfect = diff <= selDiff.perfectWindow;
+          if (isPerfect) perfectCount++; else greatCount++;
+
+          combo++;
+          if (combo > maxCombo) maxCombo = combo;
+
+          // Milestone callouts for 10 and 20 notes combo requirements
+          if (combo === 10) {
+            playTone(880, 'triangle', 0.25, 0.4);
+            addFloatingText('⚡ 10 HITS! COMBO ACTIVATED (x2)! ⚡', '#00f0ff', 240, 260, 1.35);
+            spawnParticles(240, 260, '#00f0ff', 18);
+          } else if (combo === 20) {
+            playTone(987, 'triangle', 0.3, 0.45);
+            addFloatingText('🔥 20 HITS! MEGA COMBO (x3)! 🔥', '#f59e0b', 240, 260, 1.45);
+            spawnParticles(240, 260, '#fbbf24', 24);
+          } else if (combo === 30) {
+            playTone(1174, 'square', 0.35, 0.5);
+            addFloatingText('💥 30 HITS! HYPER OVERCLOCK (x4)! 💥', '#ec4899', 240, 260, 1.5);
+            spawnParticles(240, 260, '#f472b6', 30);
+          }
+
+          // Points and BALANCED Damage Calculation
+          const basePts = isPerfect ? 500 : 350;
+          const pts = Math.round(basePts * multiplier * selClass.scoreBonus);
+          score += pts;
+
+          // Balanced Damage:
+          const baseDmg = isPerfect ? 38 : 22;
+          let dmg = Math.round(baseDmg * multiplier * selClass.scoreBonus);
+
+          if (target.isFinisher) {
+            const finisherBonus = Math.round(75 * multiplier * selClass.scoreBonus);
+            dmg += finisherBonus;
+          }
+          totalDamage += dmg;
+
+          // Paladin heal perk
+          if (isPerfect && selClass.healOnPerfect > 0) {
+            playerHp = Math.min(playerMaxHp, playerHp + selClass.healOnPerfect);
+            addFloatingText(`+${selClass.healOnPerfect} HP`, '#10b981', 140, 210, 1.1);
+          }
+
+          // Damage Number on Bug
+          addFloatingText(`-${dmg}`, '#f97316', 630 + (Math.random() - 0.5) * 40, 200, 1.3);
+
+          if (target.isFinisher) {
+            playerAnim = 'finisher';
+            playerAnimTimer = 35;
+            botAnim = 'hit';
+            botAnimTimer = 30;
+            screenShake = 12;
+            playTone(110, 'sawtooth', 0.35, 0.35);
+            setTimeout(() => playTone(880, 'square', 0.2, 0.3), 50);
+
+            // Cross Slash Effect
+            slashEffects.push(
+              { x: 630, y: 220, angle: -Math.PI / 4, length: 120, color: '#facc15', width: 7, life: 18, maxLife: 18 },
+              { x: 630, y: 220, angle: Math.PI / 4, length: 120, color: '#00f0ff', width: 7, life: 18, maxLife: 18 }
+            );
+            spawnParticles(630, 220, '#facc15', 24);
+            addFloatingText(`FINISHER! +${pts}`, '#facc15', 140, 310, 1.4);
+
+            if (combo >= 20 && Math.random() < 0.3) {
+              triggerItemDrop();
+            }
+          } else {
+            playerAnim = 'attack';
+            playerAnimTimer = 16;
+            botAnim = 'hit';
+            botAnimTimer = 14;
+            screenShake = 4;
+            playTone(isPerfect ? 880 : 587, isPerfect ? 'square' : 'triangle', 0.08, 0.2);
+
+            // Diagonal Slash trail
+            slashEffects.push({
+              x: 630 + (Math.random() - 0.5) * 30,
+              y: 220 + (Math.random() - 0.5) * 30,
+              angle: -Math.PI / 4 + (Math.random() - 0.5) * 0.4,
+              length: 85,
+              color: isPerfect ? '#00f0ff' : '#38bdf8',
+              width: isPerfect ? 5 : 3,
+              life: 14,
+              maxLife: 14
+            });
+            spawnParticles(630, 220, isPerfect ? '#00f0ff' : '#e2e8f0', 10);
+            addFloatingText(isPerfect ? `PERFECT! +${pts}` : `GREAT! +${pts}`, isPerfect ? '#00f0ff' : '#a7f3d0', 140, 330, 1.1);
+          }
+
+          updateHUD();
+        }
+      }
+    };
+
+    function triggerItemDrop() {
+      const items = ['FREEZE', 'HEAL', 'AUTOSPACE'];
+      const picked = items[Math.floor(Math.random() * items.length)];
+      playTone(523, 'sine', 0.08, 0.25);
+      setTimeout(() => playTone(784, 'sine', 0.15, 0.3), 100);
+
+      if (picked === 'FREEZE') {
+        isFrozen = true;
+        freezeTimer = 240;
+        addFloatingText('❄️ FREEZE NOTE ACTIVATED!', '#38bdf8', 400, 180, 1.3);
+      } else if (picked === 'HEAL') {
+        playerHp = Math.min(playerMaxHp, playerHp + 25);
+        addFloatingText('❤️ REPAIR PATCH +25 HP!', '#10b981', 400, 180, 1.3);
+      } else if (picked === 'AUTOSPACE') {
+        autoSpaceActive = true;
+        addFloatingText('⚡ AUTO-HIT SPACEBAR ARMED!', '#facc15', 400, 180, 1.3);
+      }
+      updateHUD();
+    }
+
+    // BALANCED MISS DAMAGE: 5 HP (instead of 12 HP)
+    function handleMiss(reason) {
+      if (shieldsLeft > 0) {
+        shieldsLeft--;
+        addFloatingText(`🛡️ SHIELD BLOCKED! (${shieldsLeft} left)`, '#a855f7', 140, 350, 1.1);
+        return;
+      }
+
+      combo = 0;
+      multiplier = 1;
+      missCount++;
+      playerHp = Math.max(0, playerHp - 5);
+      playerAnim = 'hit';
+      playerAnimTimer = 18;
+      screenShake = 6;
+      playTone(130, 'sawtooth', 0.25, 0.25);
+
+      addFloatingText(reason || 'MISS! (-5 HP)', '#ef4444', 140, 350, 1.2);
+      spawnParticles(140, 230, '#ef4444', 10);
+      updateHUD();
+
+      if (playerHp <= 0) {
+        endGame(false);
+      }
+    }
+
+    function addFloatingText(text, color, x, y, scale = 1.0) {
+      floatingTexts.push({ text, color, x, y, life: 40, maxLife: 40, scale });
+    }
+
+    function spawnParticles(x, y, color, count) {
+      for (let i = 0; i < count; i++) {
+        const angle = Math.random() * Math.PI * 2;
+        const speed = Math.random() * 5 + 2;
+        particles.push({
+          x, y,
+          vx: Math.cos(angle) * speed,
+          vy: Math.sin(angle) * speed - 1.5,
+          size: Math.random() * 4 + 3,
+          color,
+          life: 28
+        });
+      }
+    }
+
+    // KEYBOARD LISTENER
+    window.addEventListener('keydown', (e) => {
+      if (!isPlaying) return;
+      const key = e.key.toLowerCase();
+      if (e.key === 'ArrowLeft' || key === 'a') triggerKey('left');
+      else if (e.key === 'ArrowUp' || key === 'w') triggerKey('up');
+      else if (e.key === 'ArrowDown' || key === 's') triggerKey('down');
+      else if (e.key === 'ArrowRight' || key === 'd') triggerKey('right');
+      else if (e.code === 'Space' || key === ' ') {
+        e.preventDefault();
+        triggerKey('space');
+      }
+    });
+
+    // 5. 60FPS GAME LOOP
+    function gameLoop(timestamp) {
+      if (!isPlaying) return;
+
+      currentTimeMs = timestamp - startTime;
+      const now = currentTimeMs;
+
+      spawnNotes(now);
+
+      if (autoSpaceActive) {
+        const first = notes.find(n => !n.hit && !n.missed);
+        if (first && first.isFinisher && Math.abs(now - first.timeMs) <= selDiff.perfectWindow) {
+          autoSpaceActive = false;
+          triggerKey('space');
+        }
+      }
+
+      for (const n of notes) {
+        if (!n.hit && !n.missed && now - n.timeMs > selDiff.greatWindow + 20) {
+          n.missed = true;
+          handleMiss('LATE MISS!');
+        }
+      }
+
+      if (now > nextGlitchCheck && !isGlitchActive) {
+        if (Math.random() < selDiff.glitchFreq) {
+          isGlitchActive = true;
+          glitchTimer = 180;
+          botAnim = 'glitch';
+          botAnimTimer = 35;
+          addFloatingText(`⚠️ ${selBug.moveName.toUpperCase()}!`, '#f43f5e', 400, 140, 1.4);
+          playTone(180, 'sawtooth', 0.4, 0.3);
+        }
+        nextGlitchCheck = now + 4000;
+      }
+
+      if (isGlitchActive) {
+        glitchTimer--;
+        if (glitchTimer <= 0) isGlitchActive = false;
+      }
+
+      if (isFrozen) {
+        freezeTimer--;
+        if (freezeTimer <= 0) isFrozen = false;
+      }
+
+      render(now);
+
+      requestAnimationFrame(gameLoop);
+    }
+
+    // 6. PIXEL ART RENDERER WITH SLASH EFFECTS
+    function render(now) {
+      ctx.save();
+
+      if (screenShake > 0) {
+        const sx = (Math.random() - 0.5) * screenShake * 2;
+        const sy = (Math.random() - 0.5) * screenShake * 2;
+        ctx.translate(sx, sy);
+        screenShake *= 0.85;
+        if (screenShake < 0.5) screenShake = 0;
+      }
+
+      // Background
+      ctx.fillStyle = '#070a14';
+      ctx.fillRect(0, 0, 800, 480);
+
+      // Cyber Grid Stage
+      ctx.strokeStyle = 'rgba(6, 182, 212, 0.15)';
+      ctx.lineWidth = 1;
+      for (let y = 140; y <= 330; y += 22) {
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(800, y);
+        ctx.stroke();
+      }
+      for (let x = 0; x <= 800; x += 40) {
+        ctx.beginPath();
+        ctx.moveTo(x, 140);
+        ctx.lineTo(x, 330);
+        ctx.stroke();
+      }
+
+      // Server Lights
+      for (let i = 0; i < 6; i++) {
+        const active = Math.sin(now * 0.005 + i) > 0;
+        ctx.fillStyle = active ? '#10b981' : '#1e293b';
+        ctx.fillRect(40 + i * 45, 60, 12, 12);
+        ctx.fillRect(520 + i * 45, 60, 12, 12);
+      }
+
+      // Sprites
+      drawPlayerSprite(130, 220);
+      drawBotBugSprite(630, 210);
+
+      // Slash Sword Attack Trails
+      for (let i = slashEffects.length - 1; i >= 0; i--) {
+        const s = slashEffects[i];
+        const progress = 1 - (s.life / s.maxLife);
+        ctx.save();
+        ctx.translate(s.x, s.y);
+        ctx.rotate(s.angle);
+        ctx.strokeStyle = s.color;
+        ctx.lineWidth = s.width * (1 - progress);
+        ctx.shadowColor = s.color;
+        ctx.shadowBlur = 15;
+        ctx.beginPath();
+        ctx.moveTo(-s.length / 2, 0);
+        ctx.lineTo(s.length / 2, 0);
+        ctx.stroke();
+        ctx.restore();
+
+        s.life--;
+        if (s.life <= 0) slashEffects.splice(i, 1);
+      }
+
+      // Highway
+      drawHighway(now);
+
+      // Particles
+      for (let i = particles.length - 1; i >= 0; i--) {
+        const p = particles[i];
+        p.x += p.vx;
+        p.y += p.vy;
+        p.life--;
+        ctx.fillStyle = p.color;
+        ctx.fillRect(p.x, p.y, p.size, p.size);
+        if (p.life <= 0) particles.splice(i, 1);
+      }
+
+      // Floating Combat Texts (Score & Damage)
+      for (let i = floatingTexts.length - 1; i >= 0; i--) {
+        const ft = floatingTexts[i];
+        ft.y -= 1.2;
+        ft.life--;
+        const alpha = ft.life / ft.maxLife;
+        ctx.save();
+        ctx.globalAlpha = Math.max(0, alpha);
+        ctx.font = `bold ${Math.round(14 * ft.scale)}px 'Press Start 2P', 'Silkscreen', monospace`;
+        ctx.textAlign = 'center';
+        // Dark outline for crystal clear legibility
+        ctx.strokeStyle = '#000';
+        ctx.lineWidth = 4;
+        ctx.strokeText(ft.text, ft.x, ft.y);
+        ctx.fillStyle = ft.color;
+        ctx.fillText(ft.text, ft.x, ft.y);
+        ctx.restore();
+        if (ft.life <= 0) floatingTexts.splice(i, 1);
+      }
+
+      // Warnings
+      if (isGlitchActive) {
+        ctx.fillStyle = '#f43f5e';
+        ctx.font = "11px 'Press Start 2P', monospace";
+        ctx.fillText('⚠️ GLITCH ATTACK ACTIVE: ARROWS DISTORTED!', 160, 340);
+      }
+      if (isFrozen) {
+        ctx.fillStyle = '#38bdf8';
+        ctx.font = "11px 'Press Start 2P', monospace";
+        ctx.fillText('❄️ FREEZE ACTIVE: NOTE SPEED SLOWED!', 200, 340);
+      }
+
+      ctx.restore();
+    }
+
+    function drawPlayerSprite(x, y) {
+      if (playerAnimTimer > 0) playerAnimTimer--;
+      else playerAnim = 'idle';
+
+      ctx.save();
+      ctx.translate(x, y);
+
+      if (playerAnim === 'attack') ctx.translate(14, 0);
+      if (playerAnim === 'finisher') ctx.translate(24, -12);
+      if (playerAnim === 'hit') ctx.translate(-10, 0);
+
+      // Knight Body
+      ctx.fillStyle = playerAnim === 'hit' ? '#ef4444' : '#00f0ff';
+      ctx.fillRect(-16, -28, 32, 44);
+
+      // Visor
+      ctx.fillStyle = '#facc15';
+      ctx.fillRect(-8, -24, 20, 8);
+
+      // Cyber Blade
+      if (playerAnim === 'attack') {
+        ctx.fillStyle = '#fbbf24';
+        ctx.fillRect(16, -14, 38, 8);
+      } else if (playerAnim === 'finisher') {
+        ctx.fillStyle = '#facc15';
+        ctx.fillRect(16, -34, 48, 14);
+        ctx.fillStyle = 'rgba(250, 204, 21, 0.4)';
+        ctx.fillRect(20, -50, 60, 70);
+      } else {
+        ctx.fillStyle = '#38bdf8';
+        ctx.fillRect(14, -6, 16, 6);
+      }
+
+      ctx.restore();
+    }
+
+    function drawBotBugSprite(x, y) {
+      if (botAnimTimer > 0) botAnimTimer--;
+      else botAnim = 'idle';
+
+      ctx.save();
+      ctx.translate(x, y);
+
+      if (botAnim === 'hit') ctx.translate(12, 0);
+      if (botAnim === 'glitch') ctx.translate((Math.random() - 0.5) * 12, 0);
+
+      // Main bug carapace
+      ctx.fillStyle = botAnim === 'hit' ? '#fff' : selBug.color;
+      ctx.fillRect(-28, -24, 56, 48);
+
+      // Spider legs
+      ctx.fillStyle = '#334155';
+      ctx.fillRect(-44, -18, 16, 6);
+      ctx.fillRect(-44, 4, 16, 6);
+      ctx.fillRect(28, -18, 16, 6);
+      ctx.fillRect(28, 4, 16, 6);
+
+      // Glowing Eyes
+      ctx.fillStyle = '#facc15';
+      ctx.fillRect(-20, -16, 10, 8);
+      ctx.fillRect(10, -16, 10, 8);
+      ctx.fillStyle = '#ef4444';
+      ctx.fillRect(-10, -6, 6, 6);
+      ctx.fillRect(4, -6, 6, 6);
+
+      ctx.restore();
+    }
+
+    function drawHighway(now) {
+      const highwayY = 365;
+      const highwayH = 75;
+      const receptorX = 140;
+
+      ctx.fillStyle = 'rgba(10, 16, 32, 0.95)';
+      ctx.fillRect(0, highwayY, 800, highwayH);
+      ctx.strokeStyle = '#1e293b';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(0, highwayY, 800, highwayH);
+
+      // Receptor Box
+      ctx.strokeStyle = '#00f0ff';
+      ctx.lineWidth = 3;
+      ctx.strokeRect(receptorX - 26, highwayY + 12, 52, 52);
+      ctx.fillStyle = 'rgba(0, 240, 255, 0.15)';
+      ctx.fillRect(receptorX - 26, highwayY + 12, 52, 52);
+
+      const speed = isFrozen ? selDiff.noteSpeed * 0.55 : selDiff.noteSpeed;
+
+      for (const n of notes) {
+        if (n.hit) continue;
+        const x = receptorX + ((n.timeMs - now) / 1000) * speed;
+        if (x < -60 || x > 860) continue;
+
+        if (n.isFinisher) {
+          ctx.fillStyle = '#facc15';
+          ctx.fillRect(x - 36, highwayY + 14, 72, 48);
+          ctx.strokeStyle = '#fff';
+          ctx.lineWidth = 2;
+          ctx.strokeRect(x - 36, highwayY + 14, 72, 48);
+          ctx.fillStyle = '#000';
+          ctx.font = "bold 11px 'Press Start 2P', monospace";
+          ctx.textAlign = 'center';
+          ctx.fillText('SPACE', x, highwayY + 44);
+        } else {
+          let displayType = n.type;
+          if (isGlitchActive) {
+            const swaps = { left: 'right', right: 'left', up: 'down', down: 'up' };
+            displayType = swaps[n.type] || n.type;
+          }
+
+          const colors = { left: '#06b6d4', up: '#10b981', down: '#f59e0b', right: '#ec4899' };
+          const borders = { left: '#67e8f9', up: '#6ee7b7', down: '#fcd34d', right: '#f472b6' };
+          const boxSize = 46;
+          const boxY = highwayY + (highwayH - boxSize) / 2;
+
+          // Outer Glow
+          ctx.fillStyle = (colors[displayType] || '#00f0ff') + '44';
+          ctx.fillRect(x - boxSize / 2 - 3, boxY - 3, boxSize + 6, boxSize + 6);
+
+          // Box Body
+          ctx.fillStyle = colors[displayType] || '#00f0ff';
+          ctx.fillRect(x - boxSize / 2, boxY, boxSize, boxSize);
+
+          // Border Highlight
+          ctx.strokeStyle = borders[displayType] || '#ffffff';
+          ctx.lineWidth = 2.5;
+          ctx.strokeRect(x - boxSize / 2 + 2, boxY + 2, boxSize - 4, boxSize - 4);
+
+          // Render Large Crisp Bold Arrow Polygon (~70% of box size)
+          ctx.save();
+          ctx.translate(x, highwayY + highwayH / 2);
+          ctx.shadowColor = 'rgba(0, 0, 0, 0.45)';
+          ctx.shadowBlur = 4;
+          ctx.shadowOffsetX = 1;
+          ctx.shadowOffsetY = 2;
+          ctx.fillStyle = '#ffffff';
+          ctx.beginPath();
+
+          if (displayType === 'left') {
+            ctx.moveTo(-15, 0);
+            ctx.lineTo(-1, -13);
+            ctx.lineTo(-1, -6);
+            ctx.lineTo(14, -6);
+            ctx.lineTo(14, 6);
+            ctx.lineTo(-1, 6);
+            ctx.lineTo(-1, 13);
+          } else if (displayType === 'right') {
+            ctx.moveTo(15, 0);
+            ctx.lineTo(1, -13);
+            ctx.lineTo(1, -6);
+            ctx.lineTo(-14, -6);
+            ctx.lineTo(-14, 6);
+            ctx.lineTo(1, 6);
+            ctx.lineTo(1, 13);
+          } else if (displayType === 'up') {
+            ctx.moveTo(0, -15);
+            ctx.lineTo(13, -1);
+            ctx.lineTo(6, -1);
+            ctx.lineTo(6, 14);
+            ctx.lineTo(-6, 14);
+            ctx.lineTo(-6, -1);
+            ctx.lineTo(-13, -1);
+          } else if (displayType === 'down') {
+            ctx.moveTo(0, 15);
+            ctx.lineTo(13, 1);
+            ctx.lineTo(6, 1);
+            ctx.lineTo(6, -14);
+            ctx.lineTo(-6, -14);
+            ctx.lineTo(-6, 1);
+            ctx.lineTo(-13, 1);
+          }
+          ctx.closePath();
+          ctx.fill();
+          ctx.restore();
+        }
+      }
+    }
+
+    // 7. END GAME & RESET
+    function endGame(won) {
+      isPlaying = false;
+      stopMusicLoop();
+
+      const elapsedSec = Math.floor(currentTimeMs / 1000);
+      const mins = String(Math.floor(elapsedSec / 60)).padStart(2, '0');
+      const secs = String(elapsedSec % 60).padStart(2, '0');
+      const clearTime = `${mins}:${secs}`;
+
+      const titleEl = document.getElementById('summary-title');
+      const subEl = document.getElementById('summary-subtitle');
+
+      if (won) {
+        titleEl.innerText = 'STAGE CLEARED! VICTORY!';
+        titleEl.className = 'result-title font-pixel win';
+        subEl.innerText = `ยินดีด้วย! คุณปราบ ${selBug.name} สำเร็จและทำคะแนนทะลุเป้าหมาย!`;
+        playTone(523, 'triangle', 0.2);
+        setTimeout(() => playTone(659, 'triangle', 0.2), 150);
+        setTimeout(() => playTone(784, 'square', 0.4), 300);
+      } else {
+        titleEl.innerText = 'SYSTEM OVERHEAT! DEFEATED';
+        titleEl.className = 'result-title font-pixel lose';
+        subEl.innerText = `ผู้เล่นถูกบั๊ก ${selBug.name} กลืนกินหน่วยความจำจน HP หมด!`;
+        playTone(150, 'sawtooth', 0.5);
+      }
+
+      document.getElementById('sum-score').innerText = score.toLocaleString() + ' PTS';
+      document.getElementById('sum-combo').innerText = maxCombo + ' HITS';
+      document.getElementById('sum-damage').innerText = totalDamage.toLocaleString() + ' DMG';
+      document.getElementById('sum-time').innerText = clearTime;
+      document.getElementById('sum-ratings').innerText = `P:${perfectCount} / G:${greatCount} / M:${missCount}`;
+      const exp = Math.round(score * 0.1 + (won ? 500 : 50));
+      document.getElementById('sum-exp').innerText = `+${exp.toLocaleString()} EXP`;
+
+      document.getElementById('screen-game').classList.remove('active');
+      document.getElementById('screen-summary').classList.add('active');
+    }
+
+    window.returnToMenu = () => {
+      document.getElementById('screen-summary').classList.remove('active');
+      document.getElementById('screen-game').classList.remove('active');
+      document.getElementById('screen-menu').classList.add('active');
+    };
+
+    document.getElementById('btn-start-game').addEventListener('click', startGame);
+
+    // Boot
+    buildMenuUI();
+  </script>
+</body>
+</html>
