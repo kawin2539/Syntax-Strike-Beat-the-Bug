@@ -3,7 +3,7 @@ name: Deploy Syntax Strike to GitHub Pages
 on:
   push:
     branches: [ main ]
-  workflow_dispatch: # เพิ่มปุ่มให้สามารถกดสั่ง Run Deploy มือเองได้จากหน้าเว็บ
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -15,15 +15,12 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  # ==========================================
-  # STEP 1: VALIDATION & FILE CHECK (ตรวจสอบไฟล์)
-  # ==========================================
   validate-project:
     name: "1. Validate Project & HTML File"
     runs-on: ubuntu-latest
     steps:
       - name: "1.1 Checkout Source Code"
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4.2.2
 
       - name: "1.2 Check index.html Existence"
         run: |
@@ -34,28 +31,22 @@ jobs:
             exit 1
           fi
 
-  # ==========================================
-  # STEP 2: BUILD & ARTIFACT PREPARATION (เตรียมไฟล์)
-  # ==========================================
   prepare-artifact:
     name: "2. Prepare Web Artifacts"
     needs: validate-project
     runs-on: ubuntu-latest
     steps:
       - name: "2.1 Checkout Source Code"
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4.2.2
 
       - name: "2.2 Setup GitHub Pages Environment"
-        uses: actions/configure-pages@v4
+        uses: actions/configure-pages@v5
 
       - name: "2.3 Package & Upload Site Artifact"
-        uses: actions/upload-pages-artifact@v3
+        uses: actions/upload-pages-artifact@v3.1.1
         with:
-          path: '.' # ดึงไฟล์จาก Root Directory ขึ้นไปรัน
+          path: '.'
 
-  # ==========================================
-  # STEP 3: DEPLOYMENT TO GITHUB PAGES (นำส่งขึ้นเว็บ)
-  # ==========================================
   deploy-site:
     name: "3. Deploy to GitHub Pages"
     needs: prepare-artifact
@@ -66,4 +57,4 @@ jobs:
     steps:
       - name: "3.1 Deploy Web App"
         id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v4.0.5
